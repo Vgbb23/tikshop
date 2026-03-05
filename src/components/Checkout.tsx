@@ -34,6 +34,7 @@ export default function Checkout({ isOpen, onClose, items, timeLeft }: CheckoutP
   const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
   const shippingFee = 0;
   const total = subtotal + shippingFee;
+  const canPlaceOrder = Boolean(savedAddress && savedCPF);
 
   const formatPrice = (price: number) => {
     return price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -392,11 +393,17 @@ export default function Checkout({ isOpen, onClose, items, timeLeft }: CheckoutP
 
           <button 
             onClick={handleCreatePixCharge}
-            className="w-full bg-[#FF2D55] text-white py-3 rounded-[4px] flex flex-col items-center justify-center leading-none shadow-lg active:scale-[0.98] transition-transform"
+            disabled={!canPlaceOrder || isCreatingPix}
+            className={`w-full py-3 rounded-[4px] flex flex-col items-center justify-center leading-none shadow-lg transition-transform ${!canPlaceOrder || isCreatingPix ? 'bg-gray-300 text-white cursor-not-allowed' : 'bg-[#FF2D55] text-white active:scale-[0.98]'}`}
           >
             <span className="text-[16px] font-bold mb-1">Fazer pedido</span>
             <span className="text-[11px] font-medium opacity-90">A oferta acaba em {timeLeft} | Restam 7</span>
           </button>
+          {!canPlaceOrder && (
+            <p className="text-[11px] text-[#888888] text-center">
+              Preencha CPF e endereço de envio para continuar.
+            </p>
+          )}
         </div>
         
         <AddressForm 

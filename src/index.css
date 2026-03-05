@@ -19,3 +19,12 @@ body {
   @apply antialiased text-[#222222] bg-[#F5F5F5];
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
+
+/* Prevent iOS Safari auto-zoom on focused form fields */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

@@ -49,7 +49,7 @@ app.post('/api/fruitfy/pix/charge', async (req, res) => {
   };
 
   try {
-    const response = await fetch('https://dash.fruitfy.io/api/pix/charge', {
+    const response = await fetch('https://api.fruitfy.io/api/pix/charge', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
