@@ -53,6 +53,8 @@ export default function Checkout({ isOpen, onClose, items, timeLeft }: CheckoutP
   };
 
   const onlyDigits = (value: string) => value.replace(/\D/g, '');
+  const sanitizeString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+  const isValidQrCodeSource = (value: string) => value.startsWith('data:image/') || value.startsWith('https://');
 
   const handleCreatePixCharge = async () => {
     if (!savedAddress) {
@@ -104,8 +106,9 @@ export default function Checkout({ isOpen, onClose, items, timeLeft }: CheckoutP
         throw new Error(data?.message || 'Falha ao criar cobrança PIX');
       }
 
-      const code = data?.data?.pix?.code || data?.pix?.code || '';
-      const qrCode = data?.data?.pix?.qr_code_base64 || data?.pix?.qr_code_base64 || '';
+      const code = sanitizeString(data?.data?.pix?.code || data?.pix?.code || '');
+      const qrCodeRaw = sanitizeString(data?.data?.pix?.qr_code_base64 || data?.pix?.qr_code_base64 || '');
+      const qrCode = isValidQrCodeSource(qrCodeRaw) ? qrCodeRaw : '';
 
       if (!code) {
         throw new Error('A API não retornou um código PIX válido.');

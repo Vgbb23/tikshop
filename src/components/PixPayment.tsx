@@ -37,9 +37,15 @@ export default function PixPayment({ isOpen, onClose, price, pixCode, qrCodeBase
 
   const handleCopy = () => {
     if (!pixCode) return;
-    navigator.clipboard.writeText(pixCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard
+      .writeText(pixCode)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {
+        setCopied(false);
+      });
   };
 
   if (!isOpen) return null;

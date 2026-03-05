@@ -16,6 +16,7 @@ app.post('/api/fruitfy/pix/charge', async (req, res) => {
   const token = process.env.FRUITFY_API_TOKEN;
   const storeId = process.env.FRUITFY_STORE_ID;
   const productId = process.env.FRUITFY_PRODUCT_ID;
+  const fruitfyApiBaseUrl = process.env.FRUITFY_API_BASE_URL || 'https://api.fruitfy.io';
 
   if (!token || !storeId || !productId) {
     return res.status(500).json({
@@ -49,7 +50,7 @@ app.post('/api/fruitfy/pix/charge', async (req, res) => {
   };
 
   try {
-    const response = await fetch('https://api.fruitfy.io/api/pix/charge', {
+    const response = await fetch(`${fruitfyApiBaseUrl}/api/pix/charge`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
