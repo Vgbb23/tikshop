@@ -56,6 +56,24 @@ export default function Checkout({ isOpen, onClose, items, timeLeft }: CheckoutP
   const sanitizeString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
   const isValidQrCodeSource = (value: string) => value.startsWith('data:image/') || value.startsWith('https://');
 
+  const readApiResponse = async (response: Response) => {
+    const contentType = response.headers.get('content-type') || '';
+    const raw = await response.text();
+
+    if (contentType.includes('application/json')) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return { success: false, message: 'Resposta JSON inválida da API.' };
+      }
+    }
+
+    return {
+      success: false,
+      message: raw?.slice(0, 140) || 'A API retornou um formato inesperado.',
+    };
+  };
+
   const handleCreatePixCharge = async () => {
     if (!savedAddress) {
       setPixError('Adicione um endereço antes de gerar o PIX.');
@@ -100,7 +118,7 @@ export default function Checkout({ isOpen, onClose, items, timeLeft }: CheckoutP
         }),
       });
 
-      const data = await response.json();
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
         throw new Error(data?.message || 'Falha ao criar cobrança PIX');
