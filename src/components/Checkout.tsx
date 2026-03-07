@@ -74,6 +74,24 @@ export default function Checkout({ isOpen, onClose, items, timeLeft }: CheckoutP
     };
   };
 
+  const createPixWithTimeout = async (payload: Record<string, unknown>, timeoutMs = 15000) => {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      return await fetch('/api/fruitfy/pix/charge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  };
+
   const handleCreatePixCharge = async () => {
     if (!savedAddress) {
       setPixError('Adicione um endereço antes de gerar o PIX.');
@@ -104,18 +122,12 @@ export default function Checkout({ isOpen, onClose, items, timeLeft }: CheckoutP
     setIsPixPageOpen(true);
 
     try {
-      const response = await fetch('/api/fruitfy/pix/charge', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: savedAddress.name,
-          email,
-          phone: `55${phoneDigits}`,
-          cpf: cpfDigits,
-          valueCents: Math.round(total * 100),
-        }),
+      const response = await createPixWithTimeout({
+        name: savedAddress.name,
+        email,
+        phone: `55${phoneDigits}`,
+        cpf: cpfDigits,
+        valueCents: Math.round(total * 100),
       });
 
       const data = await readApiResponse(response);
@@ -135,7 +147,13 @@ export default function Checkout({ isOpen, onClose, items, timeLeft }: CheckoutP
       setPixCode(code);
       setPixQrCodeBase64(qrCode);
     } catch (error) {
-      setPixError(error instanceof Error ? error.message : 'Erro ao gerar o código PIX.');
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        setPixError('A solicitação demorou demais. Verifique a API e tente novamente.');
+      } else if (error instanceof TypeError) {
+        setPixError('Não foi possível conectar ao servidor. Confirme se a API local está rodando.');
+      } else {
+        setPixError(error instanceof Error ? error.message : 'Erro ao gerar o código PIX.');
+      }
     } finally {
       setIsCreatingPix(false);
     }
